@@ -6,7 +6,6 @@ class Book {
     this.genre = genre;
   }
 
-  // Display book details in a readable format
   getDetails() {
     return `${this.title} by ${this.author}, published in ${this.year}, Genre: ${this.genre}`;
   }
@@ -14,123 +13,80 @@ class Book {
 
 class Library {
   constructor() {
-    // Load books from local storage and convert them to Book instances
     const storedBooks = JSON.parse(localStorage.getItem('libraryBooks')) || [];
     this.books = storedBooks.map(
       bookData =>
         new Book(bookData.title, bookData.author, bookData.year, bookData.genre)
     );
+    this.displayBooks();
   }
-
-  // Add a new book to the library
 
   addBook(book) {
     this.books.push(book);
     this.saveToLocalStorage();
-    console.log(`"${book.title}" has been added to the library.`);
+    this.displayBooks();
   }
 
   displayBooks() {
+    const bookList = document.getElementById('bookList');
+    bookList.innerHTML = '';
     if (this.books.length === 0) {
-      console.log('No books in the library.');
+      bookList.innerHTML = '<li>No books in the library.</li>';
       return;
     }
-    console.log('Library Books:');
+
     this.books.forEach((book, index) => {
-      console.log(`${index + 1}. ${book.getDetails()}`); // This line calls getDetails()
+      const li = document.createElement('li');
+      li.textContent = `${index + 1}. ${book.getDetails()}`;
+      bookList.appendChild(li);
     });
   }
 
-  // Search for books by title or author
   searchBook(searchTerm) {
+    const searchResults = document.getElementById('searchResults');
+    searchResults.innerHTML = '';
     const foundBooks = this.books.filter(
       book =>
         book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         book.author.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
     if (foundBooks.length === 0) {
-      console.log(`No books found for the search term: "${searchTerm}".`);
+      searchResults.innerHTML = `<li>No books found for the search term: "${searchTerm}".</li>`;
     } else {
-      console.log('Search Results:');
       foundBooks.forEach((book, index) => {
-        console.log(`${index + 1}. ${book.getDetails()}`);
+        const li = document.createElement('li');
+        li.textContent = `${index + 1}. ${book.getDetails()}`;
+        searchResults.appendChild(li);
       });
     }
   }
 
-  // Remove a book by title
-  removeBook(title) {
-    const index = this.books.findIndex(
-      book => book.title.toLowerCase() === title.toLowerCase()
-    );
-
-    if (index === -1) {
-      console.log(`Book titled "${title}" not found.`);
-      return;
-    }
-
-    const removedBook = this.books.splice(index, 1)[0];
-    this.saveToLocalStorage();
-    console.log(`"${removedBook.title}" has been removed from the library.`);
-  }
-
-  // Save the library array to local storage
   saveToLocalStorage() {
     localStorage.setItem('libraryBooks', JSON.stringify(this.books));
   }
 }
 
-// Usage Example:
-
+// Initialize Library
 const library = new Library();
 
-// Adding books
-const book1 = new Book(
-  'Things Fall Apart',
-  'Chinua Achebe',
-  1958,
-  'Historical Fiction'
-);
-const book2 = new Book(
-  'Half of a Yellow Sun',
-  'Chimamanda Ngozi Adichie',
-  2006,
-  'Historical Fiction'
-);
-const book3 = new Book(
-  "The Secret Lives of Baba Segi's Wives",
-  'Lola Shoneyin',
-  2010,
-  'Contemporary Fiction'
-);
-const book4 = new Book(
-  'Stay With Me',
-  'Ayobami Adebayo',
-  2017,
-  'Literary Fiction'
-);
-const book5 = new Book(
-  'My Sister, the Serial Killer',
-  'Oyinkan Braithwaite',
-  2018,
-  'Thriller/crime Fiction'
-);
+// Handle form submission for adding a book
+document.getElementById('bookForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const title = document.getElementById('title').value;
+  const author = document.getElementById('author').value;
+  const year = document.getElementById('year').value;
+  const genre = document.getElementById('genre').value;
 
-library.addBook(book1);
-library.addBook(book2);
-library.addBook(book3);
-library.addBook(book4);
-library.addBook(book5);
+  const newBook = new Book(title, author, year, genre);
+  library.addBook(newBook);
 
-// Displaying all books
-library.displayBooks();
+  // Clear form inputs
+  document.getElementById('bookForm').reset();
+});
 
-// Searching for a book
-library.searchBook('Ayobami Adebayo'); // Search by author
-library.searchBook('1958'); // Search by title
-
-// Removing a book
-library.removeBook('1949');
-
-// Displaying books after removal
-library.displayBooks();
+// Handle search functionality
+document.getElementById('searchBtn').addEventListener('click', () => {
+  const searchTerm = document.getElementById('searchTerm').value;
+  library.searchBook(searchTerm);
+});
